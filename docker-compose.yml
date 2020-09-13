@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    # コンテナ名を明示的に指定する
+    container_name: mysql-db-container
+    # ホスト名を明示的に指定する
+    hostname: db-server
+    volumes:
+      - mysql-db-store:/var/lib/mysql:rw
+      - ./mysql.docker/logs:/var/log/mysql:rw
+      - ./mysql.docker/conf.d:/etc/mysql/conf.d/my.cnf:rw
+      - ./mysql.docker/initdb.d:/docker-entrypoint-initdb.d:rw
+    environment:
+      # 環境変数の順番が重要
+      # MYSQL_ROOT_PASSWORD を最初に設定しないと以下のエラーが発生
+      # Database is uninitialized and password option is not specified
+      # You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD 
+      # and MYSQL_RANDOM_ROOT_PASSWORD
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - TZ=${TZ}
+    ports:
+      - ${DB_PORT}:3306/tcp
+    command: --innodb-use-native-aio=0
+
+volumes:
+  mysql-db-store: {}
